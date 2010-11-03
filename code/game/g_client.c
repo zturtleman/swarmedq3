@@ -1020,6 +1020,19 @@ void ClientBegin( int clientNum ) {
 }
 
 /*
+==================
+IsBot
+==================
+*/
+qboolean IsBot(gclient_t *client) {
+	//return qtrue if client is a bot
+	if (g_entities[client->ps.clientNum].r.svFlags & SVF_BOT)
+		return qtrue;
+	else
+		return qfalse;
+}
+
+/*
 ===========
 ClientSpawn
 
@@ -1043,6 +1056,7 @@ void ClientSpawn(gentity_t *ent) {
 	int		accuracy_hits, accuracy_shots;
 	int		eventSequence;
 	char	userinfo[MAX_INFO_STRING];
+	int		weapon;
 
 	index = ent - g_entities;
 	client = ent->client;
@@ -1156,16 +1170,20 @@ void ClientSpawn(gentity_t *ent) {
 
 	client->ps.clientNum = index;
 
-	client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
-	if ( g_gametype.integer == GT_TEAM ) {
-		client->ps.ammo[WP_MACHINEGUN] = 50;
-	} else {
-		client->ps.ammo[WP_MACHINEGUN] = 100;
-	}
 
-	client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
-	client->ps.ammo[WP_GAUNTLET] = -1;
-	client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
+	if (IsBot(client)) {
+		weapon = WP_LIGHTNING;
+		client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
+		client->ps.ammo[weapon] = -1;
+	} else {
+		weapon = WP_MACHINEGUN;
+		client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
+		client->ps.ammo[weapon] = 100;
+
+		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
+		client->ps.ammo[WP_GAUNTLET] = -1;
+		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
+	}
 
 	// health will count down towards max_health
 	ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
@@ -1186,7 +1204,7 @@ void ClientSpawn(gentity_t *ent) {
 		trap_LinkEntity (ent);
 
 		// force the base weapon up
-		client->ps.weapon = WP_MACHINEGUN;
+		client->ps.weapon = weapon;
 		client->ps.weaponstate = WEAPON_READY;
 
 	}
@@ -1211,7 +1229,7 @@ void ClientSpawn(gentity_t *ent) {
 
 		// select the highest weapon number available, after any
 		// spawn given items have fired
-		client->ps.weapon = 1;
+		client->ps.weapon = weapon;
 		for ( i = WP_NUM_WEAPONS - 1 ; i > 0 ; i-- ) {
 			if ( client->ps.stats[STAT_WEAPONS] & ( 1 << i ) ) {
 				client->ps.weapon = i;

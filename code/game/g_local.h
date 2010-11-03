@@ -390,6 +390,7 @@ typedef struct {
 	gentity_t	*locationHead;			// head of the location list
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
+	int			skill;					// skill level
 #ifdef MISSIONPACK
 	int			portalSequence;
 #endif

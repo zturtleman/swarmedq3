@@ -167,6 +167,7 @@ static int gameCvarTableSize = sizeof( gameCvarTable ) / sizeof( gameCvarTable[0
 
 
 void G_InitGame( int levelTime, int randomSeed, int restart );
+void G_InitWave( int wave );
 void G_RunFrame( int levelTime );
 void G_ShutdownGame( int restart );
 void CheckExitRules( void );
@@ -388,6 +389,8 @@ G_InitGame
 void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 
+	level.skill = 0;
+
 	G_Printf ("------- Game Initialization -------\n");
 	G_Printf ("gamename: %s\n", GAMEVERSION);
 	G_Printf ("gamedate: %s\n", __DATE__);
@@ -486,8 +489,30 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_RemapTeamShaders();
 
+	G_InitWave(0);
 }
 
+
+/*
+=================
+G_InitWave
+=================
+*/
+void G_InitWave(int wave) {
+	char *netname[36];
+
+	G_RemoveAllBots();
+
+	switch (wave) {
+		case 0:
+			strncpy(netname, "sarge", sizeof(netname)-1);
+			trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
+			G_GiveWeaponToBots(WP_LIGHTNING);	//TODO: this doesn't work because of spawn delay for bot (I think)
+			break;
+		default:
+			break;
+	}
+}
 
 
 /*
