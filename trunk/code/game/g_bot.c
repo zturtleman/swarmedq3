@@ -281,6 +281,60 @@ void G_AddRandomBot( int team ) {
 
 /*
 ===============
+G_RemoveAllBots
+===============
+*/
+void G_RemoveAllBots() {
+	int i;
+	char netname[36];
+	gclient_t	*cl;
+
+	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+		cl = level.clients + i;
+		if ( cl->pers.connected != CON_CONNECTED ) {
+			continue;
+		}
+		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
+			continue;
+		}
+		strcpy(netname, cl->pers.netname);
+		Q_CleanStr(netname);
+		trap_SendConsoleCommand( EXEC_INSERT, va("kick %s\n", netname) );
+	}
+}
+
+
+/*
+==================
+G_GiveWeaponToBots
+==================
+*/
+void G_GiveWeaponToBots(int weapon) {
+	int i;
+	gclient_t *cl;
+
+	for (i = 0; i < g_maxclients.integer; i++) {
+		cl = level.clients + i;
+
+		if ( cl->pers.connected != CON_CONNECTED ) {
+			continue;
+		}
+		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
+			continue;
+		}
+	
+		//give weapon to bot
+		//cl->ps.stats[STAT_WEAPONS] = (1 << weapon);
+		cl->ps.stats[STAT_WEAPONS] = weapon;
+		cl->ps.ammo[weapon] = -1;	//unlimited ammo
+		cl->ps.weapon = weapon;
+		cl->ps.weaponstate = WEAPON_READY;
+	}
+}
+
+
+/*
+===============
 G_RemoveRandomBot
 ===============
 */
