@@ -303,36 +303,6 @@ void G_RemoveAllBots() {
 	}
 }
 
-
-/*
-==================
-G_GiveWeaponToBots
-==================
-*/
-void G_GiveWeaponToBots(int weapon) {
-	int i;
-	gclient_t *cl;
-
-	for (i = 0; i < g_maxclients.integer; i++) {
-		cl = level.clients + i;
-
-		if ( cl->pers.connected != CON_CONNECTED ) {
-			continue;
-		}
-		if ( !(g_entities[cl->ps.clientNum].r.svFlags & SVF_BOT) ) {
-			continue;
-		}
-	
-		//give weapon to bot
-		//cl->ps.stats[STAT_WEAPONS] = (1 << weapon);
-		cl->ps.stats[STAT_WEAPONS] = weapon;
-		cl->ps.ammo[weapon] = -1;	//unlimited ammo
-		cl->ps.weapon = weapon;
-		cl->ps.weaponstate = WEAPON_READY;
-	}
-}
-
-
 /*
 ===============
 G_RemoveRandomBot

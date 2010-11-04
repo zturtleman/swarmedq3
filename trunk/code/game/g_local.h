@@ -391,6 +391,8 @@ typedef struct {
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
 	int			skill;					// skill level
+	int			wave;					// current wave
+	int			waveWarmupTime;			// time before next wave starts after finishing a wave
 #ifdef MISSIONPACK
 	int			portalSequence;
 #endif
