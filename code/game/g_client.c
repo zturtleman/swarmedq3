@@ -479,6 +479,13 @@ respawn
 void respawn( gentity_t *ent ) {
 	gentity_t	*tent;
 
+	//kick fragged bots from game
+	if ( (g_entities[ent->client->ps.clientNum].r.svFlags & SVF_BOT) ) {
+		trap_DropClient( ent->client->ps.clientNum, "" );
+		G_EndWave();	//check if the wave was won and handle it
+		return;
+	}
+
 	CopyToBodyQue (ent);
 	ClientSpawn(ent);
 
