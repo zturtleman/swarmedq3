@@ -462,6 +462,10 @@ Let everyone know about a team change
 */
 void BroadcastTeamChange( gclient_t *client, int oldTeam )
 {
+	//don't broadcast team change for bots
+	if (IsBot(client->ps.clientNum))
+		return;
+
 	if ( client->sess.sessionTeam == TEAM_RED ) {
 		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 			client->pers.netname) );
@@ -489,11 +493,13 @@ void SetTeam( gentity_t *ent, char *s ) {
 	spectatorState_t	specState;
 	int					specClient;
 	int					teamLeader;
+	qboolean			isBot;
 
 	//
 	// see what change is requested
 	//
 	client = ent->client;
+	isBot = IsBot(client->ps.clientNum);
 
 	clientNum = client - level.clients;
 	specClient = 0;
@@ -519,43 +525,14 @@ void SetTeam( gentity_t *ent, char *s ) {
 			team = TEAM_RED;
 		} else if ( !Q_stricmp( s, "blue" ) || !Q_stricmp( s, "b" ) ) {
 			team = TEAM_BLUE;
-		} else {
-			// pick the team with the least number of players
-			team = PickTeam( clientNum );
 		}
-
-		if ( g_teamForceBalance.integer  ) {
-			int		counts[TEAM_NUM_TEAMS];
-
-			counts[TEAM_BLUE] = TeamCount( ent->client->ps.clientNum, TEAM_BLUE );
-			counts[TEAM_RED] = TeamCount( ent->client->ps.clientNum, TEAM_RED );
-
-			// We allow a spread of two
-			if ( team == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
-				trap_SendServerCommand( ent->client->ps.clientNum, 
-					"cp \"Red team has too many players.\n\"" );
-				return; // ignore the request
-			}
-			if ( team == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
-				trap_SendServerCommand( ent->client->ps.clientNum, 
-					"cp \"Blue team has too many players.\n\"" );
-				return; // ignore the request
-			}
-
-			// It's ok, the team we are switching to has less or same number of players
-		}
-
 	} else {
 		// force them to spectators if there aren't any spots free
 		team = TEAM_FREE;
 	}
 
-	// override decision if limiting the players
-	if ( (g_gametype.integer == GT_TOURNAMENT)
-		&& level.numNonSpectatorClients >= 2 ) {
-		team = TEAM_SPECTATOR;
-	} else if ( g_maxGameClients.integer > 0 && 
-		level.numNonSpectatorClients >= g_maxGameClients.integer ) {
+	if ( g_maxGameClients.integer > 0 && 
+		level.numNonSpectatorClients >= g_maxGameClients.integer /*&& !isBot*/ ) {
 		team = TEAM_SPECTATOR;
 	}
 
@@ -566,6 +543,12 @@ void SetTeam( gentity_t *ent, char *s ) {
 	if ( team == oldTeam && team != TEAM_SPECTATOR ) {
 		return;
 	}
+	
+	//do not allow bots to join blue and do not allow players to join red
+	//TODO: this seriously seems to mess things up
+	//if ( (isBot && team == TEAM_BLUE) || (!isBot && team == TEAM_RED) ) {
+	//	return;
+	//}
 
 	//
 	// execute the team change
