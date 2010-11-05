@@ -159,6 +159,12 @@ struct gentity_s {
 
 
 typedef enum {
+	LS_WAVEWARMUP,
+	LS_WAVEINPROGRESS,
+	LS_WAVEFINISHED
+} levelstate_t;
+
+typedef enum {
 	CON_DISCONNECTED,
 	CON_CONNECTING,
 	CON_CONNECTED
@@ -390,6 +396,7 @@ typedef struct {
 	gentity_t	*locationHead;			// head of the location list
 	int			bodyQueIndex;			// dead bodies
 	gentity_t	*bodyQue[BODY_QUEUE_SIZE];
+	int			state;					// level state
 	int			skill;					// skill level
 	int			wave;					// current wave
 	int			waveWarmupTime;			// time before next wave starts after finishing a wave

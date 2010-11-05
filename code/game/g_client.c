@@ -480,7 +480,7 @@ void respawn( gentity_t *ent ) {
 	gentity_t	*tent;
 
 	//kick fragged bots from game
-	if ( (g_entities[ent->client->ps.clientNum].r.svFlags & SVF_BOT) ) {
+	if (IsBot(ent->client->ps.clientNum) ) {
 		trap_DropClient( ent->client->ps.clientNum, "" );
 		G_EndWave();	//check if the wave was won and handle it
 		return;
@@ -1031,9 +1031,9 @@ void ClientBegin( int clientNum ) {
 IsBot
 ==================
 */
-qboolean IsBot(gclient_t *client) {
+qboolean IsBot(int clientNum) {
 	//return qtrue if client is a bot
-	if (g_entities[client->ps.clientNum].r.svFlags & SVF_BOT)
+	if (g_entities[clientNum].r.svFlags & SVF_BOT)
 		return qtrue;
 	else
 		return qfalse;
@@ -1178,7 +1178,7 @@ void ClientSpawn(gentity_t *ent) {
 	client->ps.clientNum = index;
 
 
-	if (IsBot(client)) {
+	if (IsBot(client->ps.clientNum)) {
 		weapon = WP_LIGHTNING;
 		client->ps.stats[STAT_WEAPONS] = ( 1 << weapon );
 		client->ps.ammo[weapon] = -1;

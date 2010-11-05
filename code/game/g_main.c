@@ -501,30 +501,31 @@ G_InitWave
 =================
 */
 void G_InitNextWave() {
-	Com_Printf("Starting next wave...\n");
 	level.wave++; //increase wave index to next wave
 
 	//TODO: if last wave is hit, set wave index to 0 and increase skill level by 1. If skill level is already maximum skill, then continue to a won-game state
 
+	level.state = LS_WAVEWARMUP;
 	level.waveWarmupTime = level.time + ( g_warmup.integer - 1 ) * 1000; //TODO: make wave warmup time configurable seperate of level warmuptime?
 }
 
 void G_SpawnEnemiesForWave() {
 	char *netname[36];
 
-	Com_Printf("Bots are spawned...\n");
 	switch (level.wave) {
 		case 1:
-			strncpy(netname, "sarge", sizeof(netname)-1);
+			strncpy(netname, "daemia", sizeof(netname)-1);
 			trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
 			break;
 		case 2:
-			strncpy(netname, "major", sizeof(netname)-1);
+			strncpy(netname, "sarge", sizeof(netname)-1);
 			trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
 			trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %i red %i\n", netname, level.skill, 0) ); //name, skill [0-4], team [red,blue], delay
 		default:
 			break;
 	}
+
+	level.state = LS_WAVEINPROGRESS;
 }
 
 /*
@@ -556,7 +557,9 @@ void G_EndWave() {
 		return;
 
 	//no bots were found, so end this wave
-	G_InitNextWave();
+	trap_SendServerCommand( -1, va("cp \"Wave %i completed!\n\"", level.wave) );
+	level.state = LS_WAVEFINISHED;
+	level.waveWarmupTime = level.time + 3000;
 }
 
 
@@ -1446,14 +1449,20 @@ CheckWave
 =============
 */
 void CheckWave() {
-	if (level.waveWarmupTime != -1) {
-		if (level.time >= level.waveWarmupTime)
-		{
-			level.waveWarmupTime = -1;
-			G_SpawnEnemiesForWave();
-		} else {
-			trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n\"", level.wave) );	//TODO: see if a countdown for the last 3 secs can be implemented
-		}
+	switch (level.state) {
+		case LS_WAVEWARMUP:
+			if (level.time >= level.waveWarmupTime) {
+				level.waveWarmupTime = -1;
+				G_SpawnEnemiesForWave();
+			}
+			else
+				trap_SendServerCommand( -1, va("cp \"Get ready for wave %i\n\"", level.wave) );	//TODO: see if a countdown for the last 3 secs can be implemented
+			break;
+		case LS_WAVEFINISHED:
+			if (level.time >= level.waveWarmupTime) {
+				G_InitNextWave();
+			}
+			break;
 	}
 }
 
