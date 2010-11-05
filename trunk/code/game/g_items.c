@@ -403,7 +403,8 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		return;
 	if (other->health < 1)
 		return;		// dead people can't pickup
-	if (other[other->client->ps.clientNum].r.svFlags & SVF_BOT)
+	
+	if (IsBot(other->client->ps.clientNum))
 		return;		// bots don't pick up items
 
 	// the same pickup rules are used for client side and server side
